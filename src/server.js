@@ -21,10 +21,6 @@ function exec(cmd, ...args) {
     });
 }
 
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, '/index.html'));
-// });
-
 app.get('/alive', (req, res) => {
     res.status(200).send({ response: 'server is alive'});
 });

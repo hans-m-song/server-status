@@ -1,0 +1,26 @@
+#root {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#root div {
+    margin: 1em;
+    padding: 1em;
+    background-color: #f8f8f8;
+}
+
+#uname {
+
+}
+
+#storage {
+
+}
+
+table tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+table tr:nth-child(odd) {
+    background-color: #ffffff;
+}

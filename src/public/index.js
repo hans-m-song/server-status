@@ -35,7 +35,7 @@ async function get(endpoint, json = true) {
         table.innerHTML = 
             `<thead>
                 <tr>
-                    ${data[0].map(field => `<th>
+                    ${data[0].slice(0, data[0].length - 2).map(field => `<th>
                         ${field}
                     </th>`).join('')}
                 </tr>
