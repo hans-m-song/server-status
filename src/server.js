@@ -26,10 +26,16 @@ app.get('/alive', (req, res) => {
 });
 
 app.get('/exec/uname', async (req, res) => {
-    const flags = [ '-s', '-n', '-r', '-v', '-m', '-o' ];
-    const response = {};
-    for (const flag of flags) {
-        response[flag] = await exec('uname', flag);
+    const response = { flags: [
+        ['-s', 'kernel name'], 
+        ['-n', 'node name'], 
+        ['-r', 'kernel release'], 
+        ['-v', 'kernel version'], 
+        ['-m', 'machine'], 
+        ['-o', 'operating system']
+    ] };
+    for (const [flag, name] of response.flags) {
+        response[name] = (await exec('uname', flag)).result;
     }
     res.status(200).send(response);
 });
@@ -37,6 +43,22 @@ app.get('/exec/uname', async (req, res) => {
 app.get('/exec/df', async (req, res) => {
     const response = await exec('df', '-h');
     res.status(200).send(response);
+});
+
+app.get('/exec/uptime', async (req, res) => {
+    const response = await exec('uptime');
+    res.status(200).send(response);
+});
+
+app.get('/exec/top', async (req, res) => {
+    const response = await exec('top', '-n', 1, '-b');
+    res.status(200).send({ 
+        ...response, 
+        result: [ 
+            ...response.result[0].replace(/top - /, 'System: ').split(/\n/), 
+            ...response.result[1].split(/\n/).slice(0, 3)
+        ] 
+    });
 })
 
 app.listen(port, () => console.log(`listening on port ${port}`));

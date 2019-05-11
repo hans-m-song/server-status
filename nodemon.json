@@ -6,8 +6,7 @@
     ],
     "verbose": true,
     "watch": [
-        "src/client/*",
-        "src/main.js"
+        "src/server.js"
     ],
     "env": {
         "NODE_ENV": "development"
