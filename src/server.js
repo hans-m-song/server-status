@@ -55,10 +55,15 @@ app.get('/exec/top', async (req, res) => {
     res.status(200).send({ 
         ...response, 
         result: [ 
-            ...response.result[0].replace(/top - /, 'System: ').split(/\n/), 
+            ...response.result[0].replace(/top - /, 'System as of ').replace(/\sup/, ':').split(/\n/), 
             ...response.result[1].split(/\n/).slice(0, 3)
         ] 
     });
-})
+});
+
+app.get('/exec/free', async (req, res) => {
+    const response = await exec('free', '-h');
+    res.status(200).send(response);
+});
 
 app.listen(port, () => console.log(`listening on port ${port}`));

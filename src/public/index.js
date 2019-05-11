@@ -63,21 +63,113 @@ async function get(endpoint, json = true) {
     }
 })();
 
+function initGraphs (memMax, swapMax) {
+    const memoryGraphCtx = document.getElementById('memory-graph').getContext('2d');
+    const memoryGraph = new Chart(memoryGraphCtx, {
+        type: 'line',
+        data: {
+            labels: [ 45, 40, 35, 30, 25, 20, 15, 10, 5, 0 ],
+            datasets: [{
+                label: 'memory usage (KiB)',
+                data: new Array(10).fill(0)
+            }]
+        },
+        options: {
+            elements: {
+                line: {
+                    tension: 0
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+
+    const swapGraphCtx = document.getElementById('swap-graph').getContext('2d');
+    const swapGraph = new Chart(swapGraphCtx, {
+        type: 'line',
+        data: {
+            labels: [ 45, 40, 35, 30, 25, 20, 15, 10, 5, 0 ],
+            datasets: [{
+                label: 'swap usage (KiB)',
+                data: new Array(10).fill(0)
+            }]
+        },
+        options: {
+            elements: {
+                line: {
+                    tension: 0
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+    
+    return { memoryGraph, swapGraph };
+}
+
+function updateGraph(graph, value) {
+    graph.data.datasets[0].data = [ 
+        ...graph.data.datasets[0].data.slice(1), 
+        value 
+    ];
+    graph.update();
+}
+
 (async () => {
     const statistics = document.createElement('div');
     statistics.id = 'statistics';
+    statistics.innerHTML = 
+        `<div id='text'></div>
+        <div id='graphs'>
+            <canvas id='memory-graph'></canvas>
+            <canvas id='swap-graph'></canvas>
+        </div>`;
     root.appendChild(statistics);
-    setInterval(async () => {
+    
+    const { memoryGraph, swapGraph } = initGraphs();
+
+    const intervalHandler = async () => {
         try {
-            const response = (await get('/exec/top')).result;
-            statistics.innerHTML = '';
-            const data = response.map(el => el.split(/[,\.:]\s+/));
-            for (const [field, ...content] of data) {
-                statistics.innerHTML += 
-                    `<p><span class='label'>${field}: </span>${content.join(', ')}</p>`;
+            const freeResponse = (await get('/exec/free')).result[0];
+            const freeData = freeResponse.split('\n').map(line => line.split(/\s+/).filter(el => el !== ''));
+            statistics.children.text.innerHTML = `<table id='free-table'><thead><tr><th></th></tr></thead><tbody></tbody></table>`;
+            const table = document.getElementById('free-table');
+            freeData[0].forEach(header => table.tHead.rows[0].innerHTML += `<th>${header}</th>`);
+            freeData.slice(1).forEach(line => {
+                table.tBodies[0].innerHTML += 
+                    line.map(cell => `<td>${cell}</td>`).join('');
+            });
+
+            const topResponse = (await get('/exec/top')).result;
+            const topData = topResponse.map(el => el.split(/[,\.:]\s+/));
+            // statistics.children.text.innerHTML = '';
+            // for (const [field, ...content] of data) {
+            //     statistics.children.text.innerHTML += 
+            //         `<p><span class='label'>${field}: </span>${content.join(', ')}</p>`;
+            // }
+            if (typeof memoryGraph.options.scales.yAxes[0].ticks.suggestedMax === 'undefined') {
+                memoryGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[3][1].replace(/[^\d]/g, ''));
+                swapGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[4][1].replace(/[^\d]/g, ''));
             }
+
+            updateGraph(memoryGraph, parseInt(topData[3][3].replace(/[^\d]/g, '')));
+            updateGraph(swapGraph, parseInt(topData[4][3].replace(/[^\d]/g, '')));
         } catch (e) {
             console.log('failed to enumerate statistics', e);
         }
-    }, 5000);
+    }
+    await intervalHandler();
+    setInterval(intervalHandler, 5000);
 })();

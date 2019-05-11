@@ -3,7 +3,7 @@
     flex-wrap: wrap;
 }
 
-#root div {
+#root > div {
     margin: 1em;
     padding: 1em;
     background-color: #f8f8f8;
