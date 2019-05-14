@@ -154,11 +154,6 @@ function updateGraph(graph, value) {
 
             const topResponse = (await get('/exec/top')).result;
             const topData = topResponse.map(el => el.split(/[,\.:]\s+/));
-            // statistics.children.text.innerHTML = '';
-            // for (const [field, ...content] of data) {
-            //     statistics.children.text.innerHTML += 
-            //         `<p><span class='label'>${field}: </span>${content.join(', ')}</p>`;
-            // }
             if (typeof memoryGraph.options.scales.yAxes[0].ticks.suggestedMax === 'undefined') {
                 memoryGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[3][1].replace(/[^\d]/g, ''));
                 swapGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[4][1].replace(/[^\d]/g, ''));
@@ -168,6 +163,27 @@ function updateGraph(graph, value) {
             updateGraph(swapGraph, parseInt(topData[4][3].replace(/[^\d]/g, '')));
         } catch (e) {
             console.log('failed to enumerate statistics', e);
+        }
+    }
+    await intervalHandler();
+    setInterval(intervalHandler, 5000);
+})();
+
+// pending server-side preventative measures for spamming this
+// const restartBot = async () => await get('/discordbot/restart');
+
+(async () => {
+    const discordbot = document.createElement('div');
+    discordbot.id = 'discordbot';
+    root.appendChild(discordbot);
+    const intervalHandler = async () => {
+        try {
+            const response = (await get('/discordbot/status')).result;
+            discordbot.innerHTML = 
+                `<p>bot status: ${((response.length > 1) ? `active` : `offline`)}</p>` + 
+                `<button disabled onclick="restartBot()">restart</button>`;
+        } catch (e) {
+            console.log('failed to enumerate discord bot status');
         }
     }
     await intervalHandler();
