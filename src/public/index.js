@@ -169,8 +169,7 @@ function updateGraph(graph, value) {
     setInterval(intervalHandler, 5000);
 })();
 
-// pending server-side preventative measures for spamming this
-const restartBot = async () => await get('/discordbot/restart');
+const restartBot = async () => await fetch('/discordbot/restart');
 
 (async () => {
     const discordbot = document.createElement('div');

@@ -6,6 +6,7 @@ const spawn = require('child_process').spawn;
 
 const app = express();
 const port = process.env.PORT || 4242;
+let allowRestart = true;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -77,18 +78,24 @@ app.get('/discordbot/status', async (req, res) => {
     res.status(200).send(response);
 });
 
-// pending preventative measures for spamming
 app.get('/discordbot/restart', async (req, res) => {
-    const response = await exec(listProcesses);
-    if (response.result.length < 1) {
-        await exec('discordbot');
+    if (!allowRestart) {
+        res.status(403).send({ message: 'wait for 30 seconds before trying again' });
     } else {
-        // console.log('killing', response.result);
-        // await exec(`for pid in $( ${listProcesses} ); do kill $pid; done`);
-        // await exec('discordbot');
-        // return;
+        allowRestart = false;
+        setTimeout(() => {
+            allowRestart = true;
+        }, 30000);
+        const response = await exec(listProcesses);
+        if (response.result.length > 0) {
+            for (const pid in response.result) {
+                await exec('kill ' + pid);
+            }
+        } else {
+            await exec('discordbot');
+        }
+        res.status(200).send();
     }
-    res.status(200).send();
 });
 
 app.listen(port, () => console.log(`listening on port ${port}`));
