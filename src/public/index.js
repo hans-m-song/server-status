@@ -170,7 +170,7 @@ function updateGraph(graph, value) {
 })();
 
 // pending server-side preventative measures for spamming this
-// const restartBot = async () => await get('/discordbot/restart');
+const restartBot = async () => await get('/discordbot/restart');
 
 (async () => {
     const discordbot = document.createElement('div');
@@ -180,8 +180,8 @@ function updateGraph(graph, value) {
         try {
             const response = (await get('/discordbot/status')).result;
             discordbot.innerHTML = 
-                `<p>bot status: ${((response.length > 1) ? `active` : `offline`)}</p>` + 
-                `<button disabled onclick="restartBot()">restart</button>`;
+                `<p>bot status: ${((response.length > 0) ? `active` : `offline`)}</p>` + 
+                `<button onclick="restartBot()">restart</button>`;
         } catch (e) {
             console.log('failed to enumerate discord bot status');
         }

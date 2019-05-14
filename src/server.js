@@ -78,14 +78,17 @@ app.get('/discordbot/status', async (req, res) => {
 });
 
 // pending preventative measures for spamming
-// app.get('/discordbot/restart', async (req, res) => {
-//     const response = await exec(listProcesses);
-//     if (response.result.length > 0) {
-//         console.log('killing', response.result);
-//         await exec(`for pid in $( ${listProcesses} ); do kill $pid; done`);
-//     }
-//     await exec('discordbot');
-//     res.status(200).send(response);
-// });
+app.get('/discordbot/restart', async (req, res) => {
+    const response = await exec(listProcesses);
+    if (response.result.length < 1) {
+        await exec('discordbot');
+    } else {
+        // console.log('killing', response.result);
+        // await exec(`for pid in $( ${listProcesses} ); do kill $pid; done`);
+        // await exec('discordbot');
+        // return;
+    }
+    res.status(200).send();
+});
 
 app.listen(port, () => console.log(`listening on port ${port}`));
