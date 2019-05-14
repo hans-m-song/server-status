@@ -63,14 +63,14 @@ async function get(endpoint, json = true) {
     }
 })();
 
-function initGraphs (memMax, swapMax) {
+function initGraphs () {
     const memoryGraphCtx = document.getElementById('memory-graph').getContext('2d');
     const memoryGraph = new Chart(memoryGraphCtx, {
         type: 'line',
         data: {
             labels: [ 45, 40, 35, 30, 25, 20, 15, 10, 5, 0 ],
             datasets: [{
-                label: 'memory usage (KiB)',
+                label: 'memory usage (MB)',
                 data: new Array(10).fill(0)
             }]
         },
@@ -96,7 +96,7 @@ function initGraphs (memMax, swapMax) {
         data: {
             labels: [ 45, 40, 35, 30, 25, 20, 15, 10, 5, 0 ],
             datasets: [{
-                label: 'swap usage (KiB)',
+                label: 'swap usage (MB)',
                 data: new Array(10).fill(0)
             }]
         },
@@ -141,6 +141,7 @@ function updateGraph(graph, value) {
     const { memoryGraph, swapGraph } = initGraphs();
 
     const intervalHandler = async () => {
+        const toMB = (str) => Math.floor(parseInt(str.replace(/[^\d]/g, '')) / 976.562);
         try {
             const freeResponse = (await get('/exec/free')).result[0];
             const freeData = freeResponse.split('\n').map(line => line.split(/\s+/).filter(el => el !== ''));
@@ -155,12 +156,12 @@ function updateGraph(graph, value) {
             const topResponse = (await get('/exec/top')).result;
             const topData = topResponse.map(el => el.split(/[,\.:]\s+/));
             if (typeof memoryGraph.options.scales.yAxes[0].ticks.suggestedMax === 'undefined') {
-                memoryGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[3][1].replace(/[^\d]/g, ''));
-                swapGraph.options.scales.yAxes[0].ticks.max = parseInt(topData[4][1].replace(/[^\d]/g, ''));
+                memoryGraph.options.scales.yAxes[0].ticks.max = toMB(topData[3][1]);
+                swapGraph.options.scales.yAxes[0].ticks.max = toMB(topData[4][1]);
             }
 
-            updateGraph(memoryGraph, parseInt(topData[3][3].replace(/[^\d]/g, '')));
-            updateGraph(swapGraph, parseInt(topData[4][3].replace(/[^\d]/g, '')));
+            updateGraph(memoryGraph, toMB(topData[3][3]));
+            updateGraph(swapGraph, toMB(topData[4][3]));
         } catch (e) {
             console.log('failed to enumerate statistics', e);
         }

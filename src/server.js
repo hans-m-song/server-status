@@ -65,7 +65,7 @@ app.get('/exec/top', async (req, res) => {
 });
 
 app.get('/exec/free', async (req, res) => {
-    const response = await exec('free', '-h');
+    const response = await exec('free -m');
     res.status(200).send(response);
 });
 
